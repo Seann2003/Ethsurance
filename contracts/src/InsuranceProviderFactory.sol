@@ -2,24 +2,33 @@
 pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@chainlink/contracts/v0.8/shared/interfaces/LinkTokenInterface.sol";
-import "@chainlink/contracts/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import "./InsuranceContract.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract InsurancePolicyFactory is ReentrancyGuard, Ownable {
     IERC20 public usdtToken;
-    AggregatorV3Interface public priceFeed;
-    LinkTokenInterface public linkToken;
+    uint256 public defaultBasePayout = 10_000 * 1e18; // Default base payout
+    uint256 public maxBasePayout = 100_000 * 1e18; // Maximum allowed payout
+    uint256 public defaultDeductable;
+    uint256 public baseCoverage;
+    string[] public coveredDisasters = [
+        "Earthquakes",
+        "Floods",
+        "Landslides",
+        "Severe Storms"
+        "Volcanoes",
+        "Wildfires"
+    ];
 
-    mapping(address => InsuranceContract) contracts;
+    mapping(address => InsuranceContract) public contracts;
 
     event PolicyCreated(
         address newContract,
         address policyHolder,
-        string location,
         string[] disasterTypes,
+        int256 latitude,
+        int256 longitude,
         uint256 premium,
         uint256 payoutValue,
         uint256 duration,
@@ -28,53 +37,74 @@ contract InsurancePolicyFactory is ReentrancyGuard, Ownable {
 
     event ContractFunded(uint256 amount, uint256 timestamp);
 
-    constructor(address _usdtToken) Ownable(msg.sender) {
+    constructor(
+        address _usdtToken,
+        uint256 _defaultDeductable,
+        uint256 _baseCoverage
+    ) Ownable(msg.sender) {
         // Self-minted token
         usdtToken = IERC20(_usdtToken);
-        // Scroll Sepolia Testnet Token Addresses
-        linkToken = LinkTokenInterface(
-            0x7273ebbB21F8D8AcF2bC12E71a08937712E9E40c
-        );
-        priceFeed = AggregatorV3Interface(
-            0xd38E5c25935291fFD51C9d66C3B7384494bb099A // Need change to scroll sepolia
-        );
+        defaultDeductable = _defaultDeductable;
+        baseCoverage = _baseCoverage;
     }
 
     // Ensure contract has sufficient funding
     function fundContract(uint256 _amount) external onlyOwner {
         require(
-            linkToken.transferFrom(msg.sender, address(this), _amount),
-            "Top up failed: Unable to transfer LINK"
+            usdtToken.transferFrom(msg.sender, address(this), _amount),
+            "Top up failed: Unable to transfer Funds"
         );
         emit ContractFunded(_amount, block.timestamp);
+    }
+
+    function calculatePayout(
+        uint256 basePayout,
+        uint256 contractDuration
+    ) public view returns (uint256) {
+        // Duration factor: 1 for 12 months, 1.5 for 24 months, etc.
+        uint256 durationFactor = (100 +
+            ((contractDuration / (12 * 2592000)) * 50)) / 100;
+
+        // Adjust base payout by duration, coverage, and risk factors
+        uint256 payout = (basePayout * durationFactor * baseCoverage) / 100;
+
+        // Deduct the deductible
+        if (payout > defaultDeductable) {
+            payout -= defaultDeductable;
+        } else {
+            payout = 0; // Ensure no negative payouts
+        }
+
+        // Enforce max payout cap
+        if (payout > maxBasePayout) {
+            payout = maxBasePayout;
+        }
+
+        return payout;
     }
 
     function createPolicy(
         address _policyHolder,
         string[] memory _disasterTypes,
-        string memory _location,
+        int256 _latitude,
+        int256 _longitude,
         uint256 _premium,
-        uint256 _payoutValue,
-        uint256 _policyDuration,
-        uint256 _riskAssessmentScore,
-        uint256 _oraclePaymentAmount
+        uint256 _policyDuration
     ) external nonReentrant onlyOwner returns (address) {
         // Calculate subscription fee based on coverage, payoutAmount and riskAssessmentScore
-        uint256 subscriptionFee = 1e17;
-
+        uint256 calculatedPayout = calculatePayout(1e17, _policyDuration);
+        uint256 subscriptionFee = (calculatedPayout * 1) / 100; // 1% of the payout value
         // Fund the contract with payout value to ensure payout can be met
         InsuranceContract newContract = new InsuranceContract(
-            address(this),
+            // address(this),
             address(usdtToken),
-            address(linkToken),
             _policyHolder,
             _disasterTypes,
-            _location,
+            coveredDisasters,
+            _latitude,
+            _longitude,
             _policyDuration,
-            _premium,
-            _payoutValue,
-            _oraclePaymentAmount,
-            _riskAssessmentScore,
+            calculatedPayout,
             subscriptionFee
         );
 
@@ -83,29 +113,20 @@ contract InsurancePolicyFactory is ReentrancyGuard, Ownable {
             usdtToken.transferFrom(
                 msg.sender,
                 address(newContract),
-                _payoutValue
+                calculatedPayout
             ),
             "Funding failed: Unable to transfer USDT"
-        );
-
-        // Get LINK token and set funding for oracle requests
-        require(
-            linkToken.transferFrom(
-                msg.sender,
-                address(newContract),
-                _oraclePaymentAmount
-            ),
-            "Funding failed: Unable to transfer LINK"
         );
 
         contracts[_policyHolder] = newContract;
         emit PolicyCreated(
             address(newContract),
             _policyHolder,
-            _location,
             _disasterTypes,
+            _latitude,
+            _longitude,
             _premium,
-            _payoutValue,
+            calculatedPayout,
             _policyDuration,
             block.timestamp
         );
