@@ -7,6 +7,8 @@ import Head from "next/head";
 import Layout from "../../components/layout";
 import Wallet from "../../components/wallet";
 import { Field, Fieldset, Input, Label, Legend} from '@headlessui/react'
+import { ethers } from "ethers";
+import InsuranceProviderFactoryABI from '../../abis/InsuranceProviderFactoryABI.json';
 
 
 export default function DashboardPage() {
@@ -44,11 +46,17 @@ export default function DashboardPage() {
   const [currentLongitude, setCurrentLongitude] = useState<string>("");
   const [currentLatitude, setCurrentLatitude] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-
+  const signer = ethers.Wallet.createRandom();
+  const insurancePolicyContract = new ethers.Contract(
+    "0xfb8672FDF496B66FB81b43B1b1cF1938CA7fb71e",
+    InsuranceProviderFactoryABI,
+    signer
+  );
+  console.log(insurancePolicyContract);
   const fetchLocation = () => {
     if (!navigator.geolocation) {
       setError("Geolocation is not supported by your browser.");
-      return;
+      return; 
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -66,6 +74,36 @@ export default function DashboardPage() {
 
 
   const handleSubmit = async () => {
+    if (!contract || !holder) {
+        setStatus('Contract or holder address is missing');
+        return;
+    }
+
+    try {
+        setStatus('Creating policy...');
+        
+        const premium = ethers.utils.parseUnits("100", 18);
+        const duration = 12 * 30 * 24 * 60 * 60;
+
+        // Call the createPolicy method
+        const tx = await contract.createPolicy(
+            holder,
+            disasterTypes,
+            12345, // latitude
+            67890, // longitude
+            premium,
+            duration
+        );
+
+        // Wait for the transaction to be mined
+        const receipt = await tx.wait();
+        setStatus('Policy created successfully!');
+        
+        console.log('Transaction receipt:', receipt);
+    } catch (error) {
+        console.error('Error creating policy:', error);
+        setStatus('Error creating policy');
+    }
     router.push("/activeSubscription");
   };
 
