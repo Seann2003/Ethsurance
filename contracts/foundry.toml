@@ -3,7 +3,7 @@ src = "src"
 out = "out"
 libs = ["lib"]
 rpc_url = "https://sepolia-rpc.scroll.io"
-private_key = "6ddd26b492c8ad88bdc751a6e51b69e3ae50376ad999d46f990df70747f2e842"
-etherscan_api_key = "M7BKEJ3U91HCFYXAWZHNFWVJ2B9GSNCCHC"
+private_key = "XXXXXXXXXXXXXXXX"
+etherscan_api_key = "XXXXXXXXXXXXXXXXXXX"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
