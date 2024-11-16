@@ -3,7 +3,6 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { Fragment } from "react";
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/react";
 import { ChevronDownIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Logo } from "./logo";
 import { usePrivy } from "@privy-io/react-auth";
 
 function classNames(...classes: Array<string | boolean>): string {
@@ -47,7 +46,7 @@ export default function Navbar({ items, accountId }: NavbarProps) {
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 {/* <Logo className="block h-8 w-auto lg:hidden mb-2" /> */}
-                <Logo />
+                <Image src="/logos/ethsurance.png" width={100} height={100} alt={"ethsurance logo"}/>
               </div>
               <div className="hidden sm:ml-6 sm:block">
                 <div className="flex space-x-4">
@@ -127,7 +126,7 @@ export default function Navbar({ items, accountId }: NavbarProps) {
             <DisclosurePanel className="fixed inset-0 z-40 flex bg-gray-800 bg-opacity-75">
               <div className="relative flex w-64 max-w-full flex-col p-6 bg-gray-900 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
-                  <Logo />
+                <Image src="/logos/ethsurance.png" width={100} height={100} alt={"ethsurance logo"}/>
                   <DisclosureButton as="button" className="p-2 text-gray-400 hover:text-white">
                     <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                   </DisclosureButton>
@@ -148,6 +147,7 @@ export default function Navbar({ items, accountId }: NavbarProps) {
                 </nav>
                 <div className="mt-auto pt-6">
                   <button
+                    type="button"
                     onClick={logout}
                     className="w-full rounded-md bg-gray-700 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600"
                   >

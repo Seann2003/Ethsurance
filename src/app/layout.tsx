@@ -35,8 +35,8 @@ export default function RootLayout({
           crossOrigin=""
         />
 
-        <link rel="icon" href="/favicons/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicons/icon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/logos/ethsurance.png" sizes="any" />
+        <link rel="icon" href="/logos/ethsurance.png" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/favicons/apple-touch-icon.png" />
         <link rel="manifest" href="/favicons/manifest.json" />
         <link
@@ -56,6 +56,6 @@ export default function RootLayout({
 }
 
 export const metadata: Metadata = {
-  title: "Privy Auth Starter",
-  description: "Privy Auth Starter",
+  title: "Ethsurance",
+  description: "Ethsurance",
 };
