@@ -52,7 +52,7 @@ export default function Navbar({ items, accountId }: NavbarProps) {
               <div className="hidden sm:ml-6 sm:block">
                 <div className="flex space-x-4">
                   {items?.map((item) => (
-                    <button
+                    <button type="button"
                       key={item.id}
                       onClick={() => navigateTo(item)}
                       className={selected === item.id ? selectedItemClass : unselectedItemClass}
@@ -135,6 +135,7 @@ export default function Navbar({ items, accountId }: NavbarProps) {
                 <nav className="flex flex-col space-y-4">
                   {items?.map((item) => (
                     <button
+                    type="button"
                       key={item.id}
                       onClick={() => {
                         navigateTo(item);

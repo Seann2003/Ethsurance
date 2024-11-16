@@ -1,4 +1,4 @@
-import type { Config } from "tailwindcss";
+import defaultTheme from 'tailwindcss/defaultTheme';
 
 export default {
   content: [
@@ -8,11 +8,18 @@ export default {
   ],
   theme: {
     extend: {
-      colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-      },
+        fontFamily: {
+            sans: ['Adelle Sans', ...defaultTheme.fontFamily.sans],
+          },
+          colors: {
+            'privy-navy': '#160B45',
+            'privy-light-blue': '#EFF1FD',
+            'privy-blueish': '#D4D9FC',
+            'privy-pink': '#FF8271',
+            'privy-violet': '#6D28D9',
+            'privy-dark-grey': '#1b1b1f'
+          },
     },
   },
   plugins: [],
-} satisfies Config;
+} as const;

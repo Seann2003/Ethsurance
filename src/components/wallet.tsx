@@ -12,7 +12,7 @@ export default function Wallet() {
 
     const handleWalletFunding = async () => {
         try {
-            if (user && user.wallet)
+            if (user?.wallet)
                 await fundWallet(user.wallet.address, {
                     chain: sepolia
                 });
