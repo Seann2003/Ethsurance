@@ -58,3 +58,36 @@ type SubscriptionPaid @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+type ContractFunded @entity(immutable: true) {
+  id: Bytes!
+  amount: BigInt! # uint256
+  timestamp: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type InsurancePolicyFactoryOwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PolicyCreated @entity(immutable: true) {
+  id: Bytes!
+  newContract: Bytes! # address
+  policyHolder: Bytes! # address
+  disasterTypes: [String!]! # string[]
+  latitude: BigInt! # int256
+  longitude: BigInt! # int256
+  premium: BigInt! # uint256
+  payoutValue: BigInt! # uint256
+  duration: BigInt! # uint256
+  timestamp: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

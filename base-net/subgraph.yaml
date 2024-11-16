@@ -5,19 +5,40 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
-    name: InsuranceContract
+    name: InsurancePolicyFactory
     network: scroll-sepolia
     source:
-      address: "0x8f986dBE23523cDEC3d4d69124b5ff250EdE9C36"
-      abi: InsuranceContract
+      address: "0xfb8672FDF496B66FB81b43B1b1cF1938CA7fb71e"
+      abi: InsurancePolicyFactory
       startBlock: 7306816
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
+        - ContractFunded
+        - PolicyCreated
+      abis:
+        - name: InsurancePolicyFactory
+          file: ./abis/InsurancePolicyFactory.json
+      eventHandlers:
+        - event: ContractFunded(uint256,uint256)
+          handler: handleContractFunded
+        - event: PolicyCreated(address,address,string[],int256,int256,uint256,uint256,uint256,uint256)
+          handler: handlePolicyCreated
+      file: ./src/insurance-policy-factory.ts
+templates:
+  - kind: ethereum
+    name: InsuranceContract
+    network: scroll-sepolia
+    source:
+      abi: InsuranceContract
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
         - BalanceReclaimed
-        - OwnershipTransferred
         - PremiumClaimed
         - SubscriptionCancelled
         - SubscriptionExpired
@@ -28,8 +49,6 @@ dataSources:
       eventHandlers:
         - event: BalanceReclaimed(address,uint256,uint256)
           handler: handleBalanceReclaimed
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
         - event: PremiumClaimed(indexed address,address,uint256,uint256)
           handler: handlePremiumClaimed
         - event: SubscriptionCancelled(indexed address,address,uint256)

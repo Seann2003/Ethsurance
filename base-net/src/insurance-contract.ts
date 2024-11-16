@@ -1,6 +1,5 @@
 import {
   BalanceReclaimed as BalanceReclaimedEvent,
-  OwnershipTransferred as OwnershipTransferredEvent,
   PremiumClaimed as PremiumClaimedEvent,
   SubscriptionCancelled as SubscriptionCancelledEvent,
   SubscriptionExpired as SubscriptionExpiredEvent,
@@ -8,7 +7,6 @@ import {
 } from "../generated/InsuranceContract/InsuranceContract"
 import {
   BalanceReclaimed,
-  OwnershipTransferred,
   PremiumClaimed,
   SubscriptionCancelled,
   SubscriptionExpired,
@@ -22,22 +20,6 @@ export function handleBalanceReclaimed(event: BalanceReclaimedEvent): void {
   entity.insuranceContract = event.params.insuranceContract
   entity.tokenAmount = event.params.tokenAmount
   entity.timestamp = event.params.timestamp
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleOwnershipTransferred(
-  event: OwnershipTransferredEvent
-): void {
-  let entity = new OwnershipTransferred(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.previousOwner = event.params.previousOwner
-  entity.newOwner = event.params.newOwner
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
