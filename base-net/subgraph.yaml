@@ -1,0 +1,60 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: InsurancePolicyFactory
+    network: scroll-sepolia
+    source:
+      address: "0xfb8672FDF496B66FB81b43B1b1cF1938CA7fb71e"
+      abi: InsurancePolicyFactory
+      startBlock: 7306816
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - ContractFunded
+        - PolicyCreated
+      abis:
+        - name: InsurancePolicyFactory
+          file: ./abis/InsurancePolicyFactory.json
+      eventHandlers:
+        - event: ContractFunded(uint256,uint256)
+          handler: handleContractFunded
+        - event: PolicyCreated(address,address,string[],int256,int256,uint256,uint256,uint256,uint256)
+          handler: handlePolicyCreated
+      file: ./src/insurance-policy-factory.ts
+templates:
+  - kind: ethereum
+    name: InsuranceContract
+    network: scroll-sepolia
+    source:
+      abi: InsuranceContract
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - BalanceReclaimed
+        - PremiumClaimed
+        - SubscriptionCancelled
+        - SubscriptionExpired
+        - SubscriptionPaid
+      abis:
+        - name: InsuranceContract
+          file: ./abis/InsuranceContract.json
+      eventHandlers:
+        - event: BalanceReclaimed(address,uint256,uint256)
+          handler: handleBalanceReclaimed
+        - event: PremiumClaimed(indexed address,address,uint256,uint256)
+          handler: handlePremiumClaimed
+        - event: SubscriptionCancelled(indexed address,address,uint256)
+          handler: handleSubscriptionCancelled
+        - event: SubscriptionExpired(indexed address,address,uint256)
+          handler: handleSubscriptionExpired
+        - event: SubscriptionPaid(indexed address,address,uint256,uint256)
+          handler: handleSubscriptionPaid
+      file: ./src/insurance-contract.ts
