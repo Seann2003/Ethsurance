@@ -9,9 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@arco-design/web-react": "^2.64.1",
     "@privy-io/react-auth": "^1.94.2",
     "@pushprotocol/restapi": "^1.7.29",
     "@pushprotocol/socket": "^0.5.3",
+    "antd": "^5.22.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "ethers": "^5.7.2",
@@ -20,6 +22,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.3.0",
+    "react-router-dom": "^6.28.0",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -27,6 +30,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "babel-plugin-import": "^1.13.8",
     "eslint": "^8",
     "eslint-config-next": "15.0.3",
     "postcss": "^8",
