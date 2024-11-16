@@ -10,7 +10,7 @@ contract MockUSDT is ERC20 {
     }
 
     // Mint more tokens as needed
-    function faucet(address to, uint256 amount) external {
+    function mint(address to, uint256 amount) external {
         _mint(to, amount);
     }
 }

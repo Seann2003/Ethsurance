@@ -1,23 +1,29 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract InsuranceContract is ReentrancyGuard, Ownable {
+    using Strings for int256;
+
     IERC20 public usdtToken;
     address private policyHolder;
     string[] private disasterTypes;
-    string private location;
+    int256 private latitude;
+    int256 private longitude;
+    int256 public coordinatePrecision = 10 ** 6;
+    uint256 public subscriptionPeriod = 30 days;
+    uint256 public gracePeriod = 14 days;
     uint256 public subscriptionFee;
-    uint256 private premium;
+    uint256 public duration;
     uint256 private payoutValue;
     uint256 private policyEndTime;
     uint256 private lastPaymentTime;
-    uint256 public subscriptionPeriod = 30 days;
-    uint256 public gracePeriod = 14 days;
     bool private isActive = true;
+    bool public isClaimable = false;
 
     modifier onlyOwnerOrPolicyHolder() {
         require(
@@ -38,6 +44,12 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
         uint256 expiryTime
     );
 
+    event SubscriptionCancelled(
+        address indexed policyHolder,
+        address insuranceContract,
+        uint256 cancellationTime
+    );
+
     event SubscriptionPaid(
         address indexed policyHolder,
         address insuranceContract,
@@ -54,51 +66,29 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
 
     event BalanceReclaimed(
         address insuranceContract,
-        uint256 linkAmount,
         uint256 tokenAmount,
         uint256 timestamp
     );
 
     constructor(
-        address _factoryContract,
         address _usdtToken,
-        address _linkToken,
         address _policyHolder,
         string[] memory _disasterTypes,
-        string memory _location,
-        uint256 _duration,
-        uint256 _premium,
+        int256 _latitude,
+        int256 _longitude,
+        uint256 _policyDuration,
         uint256 _payoutValue,
-        uint256 _oraclePaymentAmount,
-        uint256 _riskAssessmentScore,
         uint256 _subscriptionFee
     ) payable Ownable(msg.sender) {
-        transferOwnership(_factoryContract);
-        _setChainlinkToken(_linkToken);
         usdtToken = IERC20(_usdtToken);
-
         policyHolder = _policyHolder;
         disasterTypes = _disasterTypes;
-        location = _location;
-        premium = _premium;
+        latitude = _latitude * coordinatePrecision;
+        longitude = _longitude * coordinatePrecision;
+        duration = _policyDuration;
         payoutValue = _payoutValue;
-        policyEndTime = block.timestamp + _duration;
-        lastPaymentTime = block.timestamp;
-        oraclePaymentAmount = _oraclePaymentAmount;
-        riskAssessmentScore = _riskAssessmentScore;
         subscriptionFee = _subscriptionFee;
     }
-
-    /**
-     * In parent contract I funded child contract with our mock token and LINK tokens
-     * So you can just focus on chainlink calling requests etc.
-     * Not yet do test script
-     *
-     * Right now can only claim once within period, want subsequent claims need implement better mechanism (still thinking)
-     */
-
-    // TBA
-    function viewPolicy() external onlyOwnerOrPolicyHolder {}
 
     function paySubscription() external nonReentrant onlyPolicyHolder {
         // Check if policy still valid
@@ -119,7 +109,7 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
         );
         // Update status
         lastPaymentTime = block.timestamp;
-        isActive = true;
+        isActive = false;
 
         emit SubscriptionPaid(
             msg.sender,
@@ -129,33 +119,83 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
         );
     }
 
-    function checkInactivity() external onlyOwnerOrPolicyHolder {
-        // Check activity over subscription + grace period and end time
-        if (
-            block.timestamp >
-            lastPaymentTime + subscriptionPeriod + gracePeriod ||
-            block.timestamp >= policyEndTime
-        ) {
-            isActive = false;
-            emit SubscriptionExpired(
-                policyHolder,
-                address(this),
-                block.timestamp
-            );
-        }
+    function setClaimable() external onlyOwner {
+        isClaimable = true;
     }
 
-    function payPremium() external onlyOwnerOrPolicyHolder {
-        // Implement checking mechanism here
+    function checkInactivity()
+        external
+        view
+        onlyOwnerOrPolicyHolder
+        returns (bool)
+    {
+        // Check activity over subscription + grace period and end time
+        return
+            isActive &&
+            (block.timestamp >
+                lastPaymentTime + subscriptionPeriod + gracePeriod ||
+                block.timestamp >= policyEndTime);
+    }
+
+    function claimPremium() external onlyPolicyHolder {
+        require(isClaimable, "Cannot claim payout yet");
         require(
             usdtToken.transferFrom(policyHolder, address(this), payoutValue),
             "Payment failed"
         );
-        isActive = false; // Will allow multiple claims in future
+        isActive = false;
         emit PremiumClaimed(
             policyHolder,
             address(this),
             payoutValue,
+            block.timestamp
+        );
+    }
+
+    function cancelPolicy() external nonReentrant onlyPolicyHolder {
+        require(isActive, "Policy is no longer active");
+        require(!isClaimable, "Cannot cancel a claimable policy");
+
+        // Calculate cancellation refund
+        uint256 timeElapsed = block.timestamp > lastPaymentTime
+            ? block.timestamp - lastPaymentTime
+            : 0;
+        uint256 unusedDuration = subscriptionPeriod > timeElapsed
+            ? subscriptionPeriod - timeElapsed
+            : 0;
+
+        uint256 refundAmount = (subscriptionFee * unusedDuration) /
+            subscriptionPeriod;
+
+        // 10% of the refund amount
+        uint256 cancellationFee = (refundAmount * 10) / 100;
+
+        // Calculate final refund amount after deduction
+        uint256 finalRefund = refundAmount > cancellationFee
+            ? refundAmount - cancellationFee
+            : 0;
+
+        // Transfer the refund to the policyholder
+        if (finalRefund > 0) {
+            require(
+                usdtToken.transfer(policyHolder, finalRefund),
+                "Refund transfer failed"
+            );
+        }
+
+        // Transfer cancellation fee to the owner
+        if (cancellationFee > 0) {
+            require(
+                usdtToken.transfer(owner(), cancellationFee),
+                "Cancellation fee transfer failed"
+            );
+        }
+
+        isActive = false;
+
+        emit SubscriptionCancelled(
+            policyHolder,
+            address(this),
             block.timestamp
         );
     }
@@ -171,23 +211,6 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
             usdtToken.transfer(msg.sender, tokenBalance),
             "Balance withdrawal failed"
         );
-
-        LinkTokenInterface linkToken = LinkTokenInterface(
-            _chainlinkTokenAddress()
-        );
-        uint256 linkBalance = linkToken.balanceOf(address(this));
-
-        if (linkBalance > 0) {
-            require(
-                linkToken.transfer(msg.sender, linkBalance),
-                "LINK withdrawal failed"
-            );
-        }
-        emit BalanceReclaimed(
-            address(this),
-            linkBalance,
-            tokenBalance,
-            block.timestamp
-        );
+        emit BalanceReclaimed(address(this), tokenBalance, block.timestamp);
     }
 }
