@@ -8,6 +8,7 @@ import { PushAPI, CONSTANTS } from '@pushprotocol/restapi';
 import { ethers } from 'ethers';
 import { useWallets } from '@privy-io/react-auth';
 import { Terminal } from "lucide-react"
+import schedule from 'node-schedule';
  
 import {
   Alert,
@@ -22,6 +23,7 @@ const ActiveSubscriptionPage: React.FC = () => {
   const [userLocation, setUserLocation] = useState<string[]>([]);
   const [response, setResponse] = useState<string>('');
 
+  schedule.scheduleJob('* */6 * * *', async () => {
   const checkForSevereEvent = async (userLocation: string[]) => {
     try {
       // Fetch data from EONET API
@@ -58,7 +60,7 @@ const ActiveSubscriptionPage: React.FC = () => {
       return false;
     }
   };
-  
+
   // Helper function to calculate distance between two coordinates (in kilometers)
   const getDistance = (userLocation, eventCoordinates) => {
     const [userLat, userLon] = userLocation;
@@ -81,6 +83,14 @@ const ActiveSubscriptionPage: React.FC = () => {
     return degrees * Math.PI / 180;
   }
 
+  useEffect(() => {
+    const fetchEvent = async () => {
+      const result = await checkForSevereEvent(userLocation);
+      setIsSevereEvent(result);
+    };
+    fetchEvent();
+  }, [userLocation]); 
+})
   const handleCancel = () => {
     router.push("/dashboard");
   }
@@ -115,14 +125,6 @@ const ActiveSubscriptionPage: React.FC = () => {
     
     initializePushAPI();
   }, [readyWallets, wallets]);
-
-  useEffect(() => {
-    const fetchEvent = async () => {
-      const result = await checkForSevereEvent(userLocation);
-      setIsSevereEvent(result);
-    };
-    fetchEvent();
-  }, [userLocation]); 
 
   return (
     <Layout>
