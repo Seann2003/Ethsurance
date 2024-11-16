@@ -12,6 +12,7 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
     IERC20 public usdtToken;
     address private policyHolder;
     string[] private disasterTypes;
+    string[] public coveredDisasters;
     int256 private latitude;
     int256 private longitude;
     int256 public coordinatePrecision = 10 ** 6;
@@ -21,7 +22,7 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
     uint256 public duration;
     uint256 private payoutValue;
     uint256 private policyEndTime;
-    uint256 private lastPaymentTime;
+    uint256 public lastPaymentTime;
     bool private isActive = true;
     bool public isClaimable = false;
 
@@ -74,6 +75,7 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
         address _usdtToken,
         address _policyHolder,
         string[] memory _disasterTypes,
+        string[] memory _coveredDisasters,
         int256 _latitude,
         int256 _longitude,
         uint256 _policyDuration,
@@ -83,6 +85,7 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
         usdtToken = IERC20(_usdtToken);
         policyHolder = _policyHolder;
         disasterTypes = _disasterTypes;
+        coveredDisasters = _coveredDisasters;
         latitude = _latitude * coordinatePrecision;
         longitude = _longitude * coordinatePrecision;
         duration = _policyDuration;
@@ -93,8 +96,8 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
     function paySubscription() external nonReentrant onlyPolicyHolder {
         // Check if policy still valid
         bool active = isActive &&
-            (block.timestamp + gracePeriod - lastPaymentTime <
-                subscriptionPeriod);
+            ((block.timestamp - lastPaymentTime) <
+                subscriptionPeriod + gracePeriod);
 
         require(active, "Policy expired");
 
@@ -119,8 +122,35 @@ contract InsuranceContract is ReentrancyGuard, Ownable {
         );
     }
 
-    function setClaimable() external onlyOwner {
-        isClaimable = true;
+    function updateEligibility(
+        string memory _disaster
+    ) external onlyOwnerOrPolicyHolder {
+        if (isDisasterCovered(_disaster)) {
+            isClaimable = true;
+        }
+    }
+
+    function checkPayoutValue()
+        external
+        view
+        onlyOwnerOrPolicyHolder
+        returns (uint256)
+    {
+        return payoutValue;
+    }
+
+    function isDisasterCovered(
+        string memory _disaster
+    ) public view returns (bool) {
+        for (uint256 i = 0; i < coveredDisasters.length; i++) {
+            if (
+                keccak256(abi.encodePacked(coveredDisasters[i])) ==
+                keccak256(abi.encodePacked(_disaster))
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function checkInactivity()

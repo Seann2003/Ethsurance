@@ -12,8 +12,16 @@ contract InsurancePolicyFactory is ReentrancyGuard, Ownable {
     uint256 public maxBasePayout = 100_000 * 1e18; // Maximum allowed payout
     uint256 public defaultDeductable;
     uint256 public baseCoverage;
+    string[] public coveredDisasters = [
+        "Earthquakes",
+        "Floods",
+        "Landslides",
+        "Severe Storms"
+        "Volcanoes",
+        "Wildfires"
+    ];
 
-    mapping(address => InsuranceContract) contracts;
+    mapping(address => InsuranceContract) public contracts;
 
     event PolicyCreated(
         address newContract,
@@ -92,6 +100,7 @@ contract InsurancePolicyFactory is ReentrancyGuard, Ownable {
             address(usdtToken),
             _policyHolder,
             _disasterTypes,
+            coveredDisasters,
             _latitude,
             _longitude,
             _policyDuration,
