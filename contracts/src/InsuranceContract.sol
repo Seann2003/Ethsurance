@@ -1,26 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "@chainlink/contracts/v0.8/ChainlinkClient.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@chainlink/contracts/v0.8/ChainlinkClient.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract InsuranceContract is ReentrancyGuard, Ownable, ChainlinkClient {
-    using Chainlink for Chainlink.Request;
-
+contract InsuranceContract is ReentrancyGuard, Ownable {
     IERC20 public usdtToken;
     address private policyHolder;
     string[] private disasterTypes;
     string private location;
     uint256 public subscriptionFee;
-    uint256 public oraclePaymentAmount;
     uint256 private premium;
     uint256 private payoutValue;
     uint256 private policyEndTime;
     uint256 private lastPaymentTime;
-    uint256 private riskAssessmentScore;
     uint256 public subscriptionPeriod = 30 days;
     uint256 public gracePeriod = 14 days;
     bool private isActive = true;
