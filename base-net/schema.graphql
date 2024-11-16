@@ -1,0 +1,60 @@
+type BalanceReclaimed @entity(immutable: true) {
+  id: Bytes!
+  insuranceContract: Bytes! # address
+  tokenAmount: BigInt! # uint256
+  timestamp: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PremiumClaimed @entity(immutable: true) {
+  id: Bytes!
+  policyHolder: Bytes! # address
+  InsuranceContract: Bytes! # address
+  amountClaimed: BigInt! # uint256
+  timestamp: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type SubscriptionCancelled @entity(immutable: true) {
+  id: Bytes!
+  policyHolder: Bytes! # address
+  insuranceContract: Bytes! # address
+  cancellationTime: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type SubscriptionExpired @entity(immutable: true) {
+  id: Bytes!
+  policyHolder: Bytes! # address
+  insuranceContract: Bytes! # address
+  expiryTime: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type SubscriptionPaid @entity(immutable: true) {
+  id: Bytes!
+  policyHolder: Bytes! # address
+  insuranceContract: Bytes! # address
+  amount: BigInt! # uint256
+  timestamp: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

@@ -1,0 +1,41 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: InsuranceContract
+    network: scroll-sepolia
+    source:
+      address: "0x8f986dBE23523cDEC3d4d69124b5ff250EdE9C36"
+      abi: InsuranceContract
+      startBlock: 7306816
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - BalanceReclaimed
+        - OwnershipTransferred
+        - PremiumClaimed
+        - SubscriptionCancelled
+        - SubscriptionExpired
+        - SubscriptionPaid
+      abis:
+        - name: InsuranceContract
+          file: ./abis/InsuranceContract.json
+      eventHandlers:
+        - event: BalanceReclaimed(address,uint256,uint256)
+          handler: handleBalanceReclaimed
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: PremiumClaimed(indexed address,address,uint256,uint256)
+          handler: handlePremiumClaimed
+        - event: SubscriptionCancelled(indexed address,address,uint256)
+          handler: handleSubscriptionCancelled
+        - event: SubscriptionExpired(indexed address,address,uint256)
+          handler: handleSubscriptionExpired
+        - event: SubscriptionPaid(indexed address,address,uint256,uint256)
+          handler: handleSubscriptionPaid
+      file: ./src/insurance-contract.ts
