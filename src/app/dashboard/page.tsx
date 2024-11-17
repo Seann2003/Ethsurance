@@ -68,15 +68,6 @@ export default function DashboardPage() {
     );
   };
 
-  const getEmbeddedPrivyWallet = (user: User): string | null => {
-    const embeddedWallet = (user.linkedAccounts).find(
-      (account) => account.type === "wallet" && account.walletClientType === "privy"
-    ) as WalletWithMetadata;
-
-    return embeddedWallet ? embeddedWallet.address : null;
-  }
-
-
   const handleSubmit = async () => {
     // if (!insurancePolicyContract) {
     //   setStatus('Contract or holder address is missing');
@@ -85,14 +76,13 @@ export default function DashboardPage() {
     if (user) {
       try {
         // setStatus('Creating policy...');
-        const wallet = getEmbeddedPrivyWallet(user);
         const premium = ethers.utils.parseUnits("100", 18);
         const duration = 12 * 30 * 24 * 60 * 60;
         const scaledLatitude = Math.round(parseFloat(currentLatitude) * 1e6); // Scale to integer
         const scaledLongitude = Math.round(parseFloat(currentLongitude) * 1e6);
         // Call the createPolicy method
         const tx = await insurancePolicyContract.createPolicy(
-          wallet,
+          "0x42d0c62B46372491F1bb7C494c43A8469EEd5224",
           ["Floods", "Wildfires", "Landslides"],
           scaledLatitude, // latitude
           scaledLongitude,
