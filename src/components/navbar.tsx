@@ -46,7 +46,7 @@ export default function Navbar({ items, accountId }: NavbarProps) {
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 {/* <Logo className="block h-8 w-auto lg:hidden mb-2" /> */}
-                <Image src="/logos/ethsurance.png" width={100} height={100} alt={"ethsurance logo"}/>
+                <Image src="/logos/ethsurance.png" width={100} height={44} alt={"ethsurance logo"}/>
               </div>
               <div className="hidden sm:ml-6 sm:block">
                 <div className="flex space-x-4">
@@ -126,7 +126,7 @@ export default function Navbar({ items, accountId }: NavbarProps) {
             <DisclosurePanel className="fixed inset-0 z-40 flex bg-gray-800 bg-opacity-75">
               <div className="relative flex w-64 max-w-full flex-col p-6 bg-gray-900 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
-                <Image src="/logos/ethsurance.png" width={100} height={100} alt={"ethsurance logo"}/>
+                <Image src="/logos/ethsurance.png" width={151} height={155} alt={"ethsurance logo"}/>
                   <DisclosureButton as="button" className="p-2 text-gray-400 hover:text-white">
                     <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                   </DisclosureButton>
