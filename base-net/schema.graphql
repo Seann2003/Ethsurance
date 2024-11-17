@@ -8,15 +8,6 @@ type BalanceReclaimed @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type OwnershipTransferred @entity(immutable: true) {
-  id: Bytes!
-  previousOwner: Bytes! # address
-  newOwner: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
 type PremiumClaimed @entity(immutable: true) {
   id: Bytes!
   policyHolder: Bytes! # address
@@ -62,15 +53,6 @@ type ContractFunded @entity(immutable: true) {
   id: Bytes!
   amount: BigInt! # uint256
   timestamp: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type InsurancePolicyFactoryOwnershipTransferred @entity(immutable: true) {
-  id: Bytes!
-  previousOwner: Bytes! # address
-  newOwner: Bytes! # address
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

@@ -4,7 +4,7 @@ import { Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/r
 import { useFundWallet, usePrivy, type User, type WalletWithMetadata } from "@privy-io/react-auth";
 import React, { Fragment } from "react";
 import Icon from "./Icon";
-import { sepolia } from "viem/chains";
+import { scrollSepolia } from "viem/chains";
 
 export default function Wallet() {
     const { ready, authenticated, user } = usePrivy();
@@ -14,7 +14,7 @@ export default function Wallet() {
         try {
             if (user?.wallet)
                 await fundWallet(user.wallet.address, {
-                    chain: sepolia
+                    chain: scrollSepolia
                 });
         } catch (err) {
             console.error("Error Funding Embedded Wallet", err);

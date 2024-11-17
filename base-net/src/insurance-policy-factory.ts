@@ -27,6 +27,7 @@ export function handlePolicyCreated(event: PolicyCreatedEvent): void {
   let entity = new PolicyCreated(
     event.transaction.hash.concatI32(event.logIndex.toI32()),
   )
+  
   entity.newContract = event.params.newContract
   entity.policyHolder = event.params.policyHolder
   entity.disasterTypes = event.params.disasterTypes

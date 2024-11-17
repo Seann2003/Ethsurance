@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PrivyProviderWrapper from "../components/privy-provider-wrapper";
 import '../../styles/globals.css';
+import Providers from './providers'
 
 export default function RootLayout({
   children,
@@ -46,7 +47,9 @@ export default function RootLayout({
       </head>
       <body className="bg-privy-light-blue">
         <PrivyProviderWrapper>
-          {children}
+          <Providers>
+            {children}
+          </Providers>
           {/* <main className="flex flex-col min-h-screen px-4 sm:px-20 py-6 sm:py-10 bg-privy-light-blue"> */}
           {/* </main> */}
         </PrivyProviderWrapper>

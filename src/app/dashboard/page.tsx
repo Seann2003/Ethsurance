@@ -2,11 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy, User, useWallets, WalletWithMetadata } from "@privy-io/react-auth";
 import Head from "next/head";
 import Layout from "../../components/layout";
 import Wallet from "../../components/wallet";
-import { Field, Fieldset, Input, Label, Legend} from '@headlessui/react'
+import { Field, Fieldset, Input, Label, Legend } from '@headlessui/react'
 import { ethers } from "ethers";
 import InsuranceProviderFactoryABI from '../../abis/InsuranceProviderFactoryABI.json';
 
@@ -22,13 +22,7 @@ export default function DashboardPage() {
     unlinkEmail,
     linkPhone,
     unlinkPhone,
-    unlinkWallet,
-    // linkGoogle,
-    // unlinkGoogle,
-    // linkTwitter,
-    // unlinkTwitter,
-    // linkDiscord,
-    // unlinkDiscord,
+    unlinkWallet
   } = usePrivy();
 
   useEffect(() => {
@@ -46,7 +40,9 @@ export default function DashboardPage() {
   const [currentLongitude, setCurrentLongitude] = useState<string>("");
   const [currentLatitude, setCurrentLatitude] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const signer = ethers.Wallet.createRandom();
+  const provider = new ethers.providers.JsonRpcProvider("https://sepolia-rpc.scroll.io");
+  const privateKey = process.env.NEXT_PUBLIC_PRIVATE_KEY ? process.env.NEXT_PUBLIC_PRIVATE_KEY : "";
+  const signer = new ethers.Wallet(privateKey, provider);
   const insurancePolicyContract = new ethers.Contract(
     "0xfb8672FDF496B66FB81b43B1b1cF1938CA7fb71e",
     InsuranceProviderFactoryABI,
@@ -56,7 +52,7 @@ export default function DashboardPage() {
   const fetchLocation = () => {
     if (!navigator.geolocation) {
       setError("Geolocation is not supported by your browser.");
-      return; 
+      return;
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -72,45 +68,50 @@ export default function DashboardPage() {
     );
   };
 
+  const getEmbeddedPrivyWallet = (user: User): string | null => {
+    const embeddedWallet = (user.linkedAccounts).find(
+      (account) => account.type === "wallet" && account.walletClientType === "privy"
+    ) as WalletWithMetadata;
+
+    return embeddedWallet ? embeddedWallet.address : null;
+  }
+
 
   const handleSubmit = async () => {
-    if (!contract || !holder) {
-        setStatus('Contract or holder address is missing');
-        return;
-    }
-
-    try {
-        setStatus('Creating policy...');
-        
+    // if (!insurancePolicyContract) {
+    //   setStatus('Contract or holder address is missing');
+    //   return;
+    // }
+    if (user) {
+      try {
+        // setStatus('Creating policy...');
+        const wallet = getEmbeddedPrivyWallet(user);
         const premium = ethers.utils.parseUnits("100", 18);
         const duration = 12 * 30 * 24 * 60 * 60;
-
+        const scaledLatitude = Math.round(parseFloat(currentLatitude) * 1e6); // Scale to integer
+        const scaledLongitude = Math.round(parseFloat(currentLongitude) * 1e6);
         // Call the createPolicy method
-        const tx = await contract.createPolicy(
-            holder,
-            disasterTypes,
-            12345, // latitude
-            67890, // longitude
-            premium,
-            duration
+        const tx = await insurancePolicyContract.createPolicy(
+          wallet,
+          ["Floods", "Wildfires", "Landslides"],
+          scaledLatitude, // latitude
+          scaledLongitude,
+          premium,
+          duration
         );
 
         // Wait for the transaction to be mined
         const receipt = await tx.wait();
-        setStatus('Policy created successfully!');
-        
+        // setStatus('Policy created successfully!');
+
         console.log('Transaction receipt:', receipt);
-    } catch (error) {
+      } catch (error) {
         console.error('Error creating policy:', error);
-        setStatus('Error creating policy');
+        // setStatus('Error creating policy');
+      }
+      router.push("/activeSubscription");
     }
-    router.push("/activeSubscription");
   };
-
-
-  // const googleSubject = user?.google?.subject || null;
-  // const twitterSubject = user?.twitter?.subject || null;
-  // const discordSubject = user?.discord?.subject || null;
 
   return (
     <React.Fragment>
@@ -185,7 +186,7 @@ export default function DashboardPage() {
                 )}
                 {phone ? (
                   <button
-                  type="button"
+                    type="button"
                     onClick={() => {
                       unlinkPhone(phone.number);
                     }}
@@ -196,7 +197,7 @@ export default function DashboardPage() {
                   </button>
                 ) : (
                   <button
-                  type="button"
+                    type="button"
                     onClick={linkPhone}
                     className="text-sm bg-violet-600 hover:bg-violet-700 py-2 px-4 rounded-md text-white border-none"
                   >
@@ -207,33 +208,33 @@ export default function DashboardPage() {
               <Wallet />
             </div>
             <Fieldset className="space-y-8">
-                <Legend className="text-lg font-bold mt-5">Buy your insurance subscription now!</Legend>
-                <Field>
-                    <Label className="block mb-5">Current location</Label>
-                    <div className="mb-5 flex justify-between w-[450px]">
-                        <div className="flex gap-x-10 text-center items-center justify-center">
-                            <Label className={"block"}>Latitude</Label>  
-                            <Input readOnly className={"w-24 h-10"} value={currentLongitude} onChange={(e) => {
-                                setCurrentLongitude(e.target.value);
-                            }} />
-                        </div>
-                        <div className="flex gap-x-10 text-center items-center justify-center">
-                            <Label className={"block"}>Longitude</Label>  
-                            <Input readOnly className={"w-24 h-10"} value={currentLatitude} onChange={(e) => {
-                                setCurrentLatitude(e.target.value);
-                            }} />
-                        </div>
-                    </div>
-                    <button
-                    type="button"
-                    onClick={fetchLocation}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
+              <Legend className="text-lg font-bold mt-5">Buy your insurance subscription now!</Legend>
+              <Field>
+                <Label className="block mb-5">Current location</Label>
+                <div className="mb-5 flex justify-between w-[450px]">
+                  <div className="flex gap-x-10 text-center items-center justify-center">
+                    <Label className={"block"}>Latitude</Label>
+                    <Input readOnly className={"w-24 h-10"} value={currentLongitude} onChange={(e) => {
+                      setCurrentLongitude(e.target.value);
+                    }} />
+                  </div>
+                  <div className="flex gap-x-10 text-center items-center justify-center">
+                    <Label className={"block"}>Longitude</Label>
+                    <Input readOnly className={"w-24 h-10"} value={currentLatitude} onChange={(e) => {
+                      setCurrentLatitude(e.target.value);
+                    }} />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchLocation}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
                 >
-                    Get Location
+                  Get Location
                 </button>
-                </Field>
-                {error && <p className="mt-4 text-red-500">{error}</p>}
-                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg" onClick={handleSubmit}>Buy it now!</button>
+              </Field>
+              {error && <p className="mt-4 text-red-500">{error}</p>}
+              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg" onClick={handleSubmit}>Buy it now!</button>
             </Fieldset>
             {/* <p className="mt-6 font-bold uppercase text-sm text-gray-600">
               User object

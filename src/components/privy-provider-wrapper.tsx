@@ -2,7 +2,7 @@
 
 import { PrivyProvider } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
-import { sepolia } from "viem/chains";
+import { scrollSepolia } from "viem/chains";
 
 export default function PrivyProviderWrapper({
   children,
@@ -18,8 +18,8 @@ export default function PrivyProviderWrapper({
           theme: 'light',
           accentColor: '#6D28D9'
         },
-        supportedChains: [sepolia],
-        defaultChain: sepolia,
+        supportedChains: [scrollSepolia],
+        defaultChain: scrollSepolia,
         // Create wallet for all users, regardless of external wallet
         embeddedWallets: {
           createOnLogin: 'all-users'
