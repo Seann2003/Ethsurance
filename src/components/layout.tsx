@@ -14,8 +14,7 @@ export default function Layout({
   const router = useRouter();
   const navbarItems: Array<NavbarItem> =
     [
-      { id: "123", name: "Hello", resource: "hello" },
-      { id: "456", name: "IDK", resource: "idk" },
+      { id: "1", name: "Home", resource: "Home" },
     ];
 
   useEffect(() => {
